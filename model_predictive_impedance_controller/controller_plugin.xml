@@ -1,0 +1,9 @@
+<library path="model_predictive_impedance_controller">
+  <class  name="model_predictive_impedance_controller/ModelPredictiveImpedanceController" 
+          type="model_predictive_impedance_controller::ModelPredictiveImpedanceController" 
+          base_class_type="controller_interface::ControllerInterface">
+  <description>
+    The model predictive impedance controller commands a group of joints through the effort interface.
+  </description>
+  </class>
+</library>
