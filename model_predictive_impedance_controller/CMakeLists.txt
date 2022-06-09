@@ -19,12 +19,25 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(realtime_tools REQUIRED)
 find_package(trajectory_msgs REQUIRED)
+find_package(Eigen3 REQUIRED)
+
+set(EXT_LIBS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/qpOASES")
+include_directories("${EXT_LIBS_DIR}/include")
+
+include_directories(${EIGEN3_INCLUDE_DIR})
 
 add_library(model_predictive_impedance_controller
   SHARED
   src/model_predictive_impedance_controller.cpp
+  src/mpic.cpp
 )
-target_include_directories(model_predictive_impedance_controller PRIVATE include)
+
+# qpOASES
+add_library(libqpOASES STATIC IMPORTED qpOASES.hpp)
+set_property(TARGET libqpOASES PROPERTY IMPORTED_LOCATION "${EXT_LIBS_DIR}/libqpOASES.so")
+
+target_include_directories(model_predictive_impedance_controller PRIVATE include ${EXT_LIBS_DIR}/include)
+
 ament_target_dependencies(model_predictive_impedance_controller
   builtin_interfaces
   controller_interface
@@ -34,7 +47,11 @@ ament_target_dependencies(model_predictive_impedance_controller
   rcutils
   realtime_tools
   trajectory_msgs
+  Eigen3
 )
+
+target_link_libraries(model_predictive_impedance_controller libqpOASES)
+
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
 target_compile_definitions(model_predictive_impedance_controller PRIVATE "MODEL_PREDICTIVE_IMPEDANCE_CONTROLLER_BUILDING_DLL")

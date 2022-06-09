@@ -21,6 +21,7 @@
 
 #include "controller_interface/controller_interface.hpp"
 #include "model_predictive_impedance_controller/visibility_control.h"
+#include "model_predictive_impedance_controller/mpic.h"
 #include "rclcpp/subscription.hpp"
 #include "rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp"
 #include "rclcpp_lifecycle/state.hpp"
@@ -83,6 +84,13 @@ protected:
   std::vector<double> stiffness_;
   std::vector<double> damping_;
   std::vector<double> mass_;
+
+  Eigen::MatrixXd stiffnessMatrix_;
+  Eigen::MatrixXd dampingMatrix_;
+  Eigen::VectorXd stateX_;
+  Eigen::MatrixXd massMatrix_, Mv_, Mdiag_;
+  Eigen::MatrixXd rk_, rku_tmp_, rkX_tmp_;
+  Eigen::MatrixXd uOpt_;
 
 
   realtime_tools::RealtimeBuffer<std::shared_ptr<CmdType>> rt_command_ptr_;
