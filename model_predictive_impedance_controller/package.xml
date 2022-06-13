@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="3">
-  <name>model_predictive_impedance_controller</name>
+  <name>mpi_controller</name>
   <version>0.0.1</version>
   <description>Model predictive impedance controller.</description>
   <maintainer email="macbednarczyk@gmail.com">Maciej Bednarczyk</maintainer>

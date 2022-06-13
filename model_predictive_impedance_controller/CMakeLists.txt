@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(model_predictive_impedance_controller)
+project(mpi_controller)
 
 # Default to C++14
 if(NOT CMAKE_CXX_STANDARD)
@@ -26,9 +26,9 @@ include_directories("${EXT_LIBS_DIR}/include")
 
 include_directories(${EIGEN3_INCLUDE_DIR})
 
-add_library(model_predictive_impedance_controller
+add_library(mpi_controller
   SHARED
-  src/model_predictive_impedance_controller.cpp
+  src/mpi_controller.cpp
   src/mpic.cpp
 )
 
@@ -36,9 +36,9 @@ add_library(model_predictive_impedance_controller
 add_library(libqpOASES STATIC IMPORTED qpOASES.hpp)
 set_property(TARGET libqpOASES PROPERTY IMPORTED_LOCATION "${EXT_LIBS_DIR}/libqpOASES.so")
 
-target_include_directories(model_predictive_impedance_controller PRIVATE include ${EXT_LIBS_DIR}/include)
+target_include_directories(mpi_controller PRIVATE include ${EXT_LIBS_DIR}/include)
 
-ament_target_dependencies(model_predictive_impedance_controller
+ament_target_dependencies(mpi_controller
   builtin_interfaces
   controller_interface
   hardware_interface
@@ -50,13 +50,13 @@ ament_target_dependencies(model_predictive_impedance_controller
   Eigen3
 )
 
-target_link_libraries(model_predictive_impedance_controller libqpOASES)
+target_link_libraries(mpi_controller libqpOASES)
 
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
-target_compile_definitions(model_predictive_impedance_controller PRIVATE "MODEL_PREDICTIVE_IMPEDANCE_CONTROLLER_BUILDING_DLL")
+target_compile_definitions(mpi_controller PRIVATE "MPI_CONTROLLER_BUILDING_DLL")
 # prevent pluginlib from using boost
-target_compile_definitions(model_predictive_impedance_controller PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
+target_compile_definitions(mpi_controller PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 pluginlib_export_plugin_description_file(controller_interface controller_plugin.xml)
 
 install(
@@ -66,11 +66,63 @@ install(
 
 install(
   TARGETS
-  model_predictive_impedance_controller
+  mpi_controller
   RUNTIME DESTINATION bin
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
 )
+
+if(BUILD_TESTING)
+  find_package(ament_cmake_gmock REQUIRED)
+  find_package(controller_manager REQUIRED)
+  find_package(hardware_interface REQUIRED)
+  find_package(ros2_control_test_assets REQUIRED)
+
+  ament_add_gmock(
+    test_load_mpi_controller
+    test/test_load_mpi_controller.cpp
+  )
+
+  target_include_directories(
+    test_load_mpi_controller 
+    PRIVATE
+    include
+  )
+
+  ament_target_dependencies(
+    test_load_mpi_controller
+    controller_manager
+    hardware_interface
+    ros2_control_test_assets
+  )
+
+  # ament_add_gmock(
+  #   test_mpi_controller
+  #   test/test_mpi_controller.cpp
+  # )
+
+  # target_include_directories(
+  #   test_mpi_controller
+  #   PRIVATE 
+  #   include
+  #   ${EXT_LIBS_DIR}/include
+  # )
+
+  # target_link_libraries(
+  #   test_mpi_controller
+  #   mpi_controller
+  #   libqpOASES
+  # )
+  # ament_target_dependencies(
+  #   test_mpi_controller
+  #   controller_interface
+  #   hardware_interface
+  #   rclcpp
+  #   rclcpp_lifecycle
+  #   realtime_tools
+  #   std_msgs
+  # )
+endif()
 
 ament_export_dependencies(
   controller_interface
@@ -84,6 +136,6 @@ ament_export_include_directories(
   include
 )
 ament_export_libraries(
-  model_predictive_impedance_controller
+  mpi_controller
 )
 ament_package()

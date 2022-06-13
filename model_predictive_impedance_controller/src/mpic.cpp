@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "model_predictive_impedance_controller/mpic.h"
+#include "mpi_controller/mpic.h"
 
 MatrixXd kronProduct(MatrixXd S,MatrixXd X){
     MatrixXd P(S.rows() * X.rows(), S.cols() * X.cols());
