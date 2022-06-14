@@ -110,9 +110,9 @@ class SolutionAnalysis
 		 			RET_STEPDIRECTION_FAILED_TQ \n
 					RET_STEPDIRECTION_FAILED_CHOLESKY */
 		returnValue getVarianceCovariance(	QProblemB* const qp,			/**< QProblemB to be analysed. */
-											const real_t* const g_b_bA_VAR,	/**< Input:  Variance-covariance of g, the bounds lb and ub, 
+											const real_t* const g_b_bA_VAR,	/**< Input:  Variance-covariance of g, the bounds lb and ub,
 																			 *			 and lbA and ubA respectively. Dimension: 2nV x 2nV */
-											real_t* const Primal_Dual_VAR	/**< Output: The result for the variance-covariance of the primal 
+											real_t* const Primal_Dual_VAR	/**< Output: The result for the variance-covariance of the primal
 																			 *			 and dual variables. Dimension: 2nV x 2nV */
 											) const;
 
@@ -123,9 +123,9 @@ class SolutionAnalysis
 		 			RET_STEPDIRECTION_FAILED_TQ \n
 					RET_STEPDIRECTION_FAILED_CHOLESKY */
 		returnValue getVarianceCovariance(	QProblem* const qp,				/**< QProblem to be analysed. */
-											const real_t* const g_b_bA_VAR,	/**< Input:  Variance-covariance of g, the bounds lb and ub, 
+											const real_t* const g_b_bA_VAR,	/**< Input:  Variance-covariance of g, the bounds lb and ub,
 																			 *			 and lbA and ubA respectively. Dimension:  (2nV+nC) x (2nV+nC) */
-											real_t* const Primal_Dual_VAR	/**< Output: The result for the variance-covariance of the primal 
+											real_t* const Primal_Dual_VAR	/**< Output: The result for the variance-covariance of the primal
 																			 *			 and dual variables. Dimension:  (2nV+nC) x (2nV+nC) */
 											) const;
 
@@ -136,9 +136,9 @@ class SolutionAnalysis
 		 			RET_STEPDIRECTION_FAILED_TQ \n
 					RET_STEPDIRECTION_FAILED_CHOLESKY */
 		returnValue getVarianceCovariance(	SQProblem* const qp,			/**< SQProblem to be analysed. */
-											const real_t* const g_b_bA_VAR,	/**< Input:  Variance-covariance of g, the bounds lb and ub, 
+											const real_t* const g_b_bA_VAR,	/**< Input:  Variance-covariance of g, the bounds lb and ub,
 																			 *			 and lbA and ubA respectively. Dimension:  (2nV+nC) x (2nV+nC) */
-											real_t* const Primal_Dual_VAR	/**< Output: The result for the variance-covariance of the primal 
+											real_t* const Primal_Dual_VAR	/**< Output: The result for the variance-covariance of the primal
 																			 *			 and dual variables. Dimension:  (2nV+nC) x (2nV+nC) */
 											) const;
 

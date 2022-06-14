@@ -1,5 +1,5 @@
 build/
 install/
-log/ 
+log/
 .vscode/
 model_predictive_impedance_controller/external/

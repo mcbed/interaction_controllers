@@ -43,10 +43,10 @@
 BEGIN_NAMESPACE_QPOASES
 
 
-/** 
+/**
  *	\brief Manages working sets of bounds (i.e. box constraints).
  *
- *	This class manages working sets of bounds (= box constraints) 
+ *	This class manages working sets of bounds (= box constraints)
  *	by storing index sets and other status information.
  *
  *	\author Hans Joachim Ferreau
@@ -219,7 +219,7 @@ class Bounds : public SubjectTo
 		/** Frees all allocated memory.
 		 *  \return SUCCESSFUL_RETURN */
 		returnValue clear( );
-		
+
 		/** Copies all members from given rhs object.
 		 *  \return SUCCESSFUL_RETURN */
 		returnValue copy(	const Bounds& rhs	/**< Rhs object. */

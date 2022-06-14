@@ -1,6 +1,6 @@
 <library path="variable_impedance_controller">
-  <class  name="variable_impedance_controller/VariableImpedanceController" 
-          type="variable_impedance_controller::VariableImpedanceController" 
+  <class  name="variable_impedance_controller/VariableImpedanceController"
+          type="variable_impedance_controller::VariableImpedanceController"
           base_class_type="controller_interface::ControllerInterface">
   <description>
     The variable impedance controller commands a group of joints through the effort interface.

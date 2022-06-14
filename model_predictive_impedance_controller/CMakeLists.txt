@@ -90,7 +90,7 @@ if(BUILD_TESTING)
   )
 
   target_include_directories(
-    test_load_mpi_controller 
+    test_load_mpi_controller
     PRIVATE
     include
   )
@@ -109,7 +109,7 @@ if(BUILD_TESTING)
 
   target_include_directories(
     test_mpi_controller
-    PRIVATE 
+    PRIVATE
     include
   )
 

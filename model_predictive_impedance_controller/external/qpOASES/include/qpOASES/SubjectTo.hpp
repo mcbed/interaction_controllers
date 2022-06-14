@@ -43,7 +43,7 @@
 BEGIN_NAMESPACE_QPOASES
 
 
-/** 
+/**
  *	\brief Base class for managing working sets of bounds and constraints.
  *
  *	This class manages working sets of bounds and constraints by storing
@@ -169,7 +169,7 @@ class SubjectTo
 		/** Frees all allocated memory.
 		 *  \return SUCCESSFUL_RETURN */
 		returnValue clear( );
-		
+
 		/** Copies all members from given rhs object.
 		 *  \return SUCCESSFUL_RETURN */
 		returnValue copy(	const SubjectTo& rhs	/**< Rhs object. */

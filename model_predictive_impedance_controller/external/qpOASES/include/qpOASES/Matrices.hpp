@@ -247,7 +247,7 @@ class Matrix
 		 *
 		 *  Note: Calling function has to free allocated memory!
 		 *
-		 *  \return Pointer to matrix array. 
+		 *  \return Pointer to matrix array.
 		 */
 		virtual real_t* full() const = 0;
 
@@ -366,7 +366,7 @@ class DenseMatrix : public virtual Matrix
          */
         virtual real_t getNorm(	int_t type = 2	/**< Norm type, 1: one-norm, 2: Euclidean norm. */
 								) const;
-		
+
         /** Get the N-norm of a row
          *  \return N-norm of row \a rNum
          */
@@ -477,7 +477,7 @@ class DenseMatrix : public virtual Matrix
 		 *
 		 *  Note: Calling function has to free allocated memory!
 		 *
-		 *  \return Pointer to matrix array. 
+		 *  \return Pointer to matrix array.
 		 */
 		virtual real_t* full() const;
 
@@ -586,8 +586,8 @@ class SparseMatrix : public virtual Matrix
 		virtual Matrix *duplicate( ) const;
 
 
-		/** Sets value array. 
-		 *	
+		/** Sets value array.
+		 *
 		 *	Thanks to Frank Chuang.
 		 */
 		virtual void setVal(	const real_t* newVal	/**< ... */
@@ -715,7 +715,7 @@ class SparseMatrix : public virtual Matrix
 		 *
 		 *  Note: Calling function has to free allocated memory!
 		 *
-		 *  \return Pointer to matrix array. 
+		 *  \return Pointer to matrix array.
 		 */
 		virtual real_t* full() const;
 
@@ -789,7 +789,7 @@ class SparseMatrixRow : public virtual Matrix
 		 *	        BT_FALSE otherwise. */
 		virtual BooleanType isDiag( ) const;
 
-		
+
         /** Get the N-norm of the matrix
          *  \return N-norm of the matrix
          */
@@ -901,7 +901,7 @@ class SparseMatrixRow : public virtual Matrix
 		 *
 		 *  Note: Calling function has to free allocated memory!
 		 *
-		 *  \return Pointer to matrix array. 
+		 *  \return Pointer to matrix array.
 		 */
 		virtual real_t* full() const;
 

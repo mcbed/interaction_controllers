@@ -30,7 +30,7 @@
  *
  *	Declaration of an interface comprising several utility functions
  *	for solving test problems from the Online QP Benchmark Collection
- *	(This collection is no longer maintained, see 
+ *	(This collection is no longer maintained, see
  *	http://www.qpOASES.org/onlineQP for a backup).
  */
 
@@ -90,7 +90,7 @@ returnValue readOqpData(	const char* path,	/**< Full path of the data files (wit
  *  The maximum deviations from the given optimal solution as well as the
  *  maximum CPU time to solve each QP are determined.
  *
- *	Note: This variant is outdated and only kept to ensure 
+ *	Note: This variant is outdated and only kept to ensure
  *		  backwards-compatibility!
  *
  * \return SUCCESSFUL_RETURN \n
@@ -151,7 +151,7 @@ returnValue solveOqpBenchmark(	int_t nQP,					/**< Number of QPs. */
  *  by the arguments. The maximum deviations from the given optimal solution
  *  as well as the maximum CPU time to solve each QP are determined.
  *
- *	Note: This variant is outdated and only kept to ensure 
+ *	Note: This variant is outdated and only kept to ensure
  *		  backwards-compatibility!
  *
  * \return SUCCESSFUL_RETURN \n
@@ -199,7 +199,7 @@ returnValue solveOqpBenchmark(	int_t nQP,					/**< Number of QPs. */
 
 
 /** Runs an Online QP Benchmark problem and determines the maximum
- *  violation of the KKT optimality conditions as well as the 
+ *  violation of the KKT optimality conditions as well as the
  *  maximum CPU time to solve each QP.
  *
  * \return SUCCESSFUL_RETURN \n
@@ -218,8 +218,8 @@ returnValue runOqpBenchmark(	const char* path,			/**< Full path of the benchmark
 
 
 /** Runs an Online QP Benchmark problem and determines the maximum
- *  violation of the KKT optimality conditions as well as the 
- *  maximum and average number of iterations and CPU time to solve 
+ *  violation of the KKT optimality conditions as well as the
+ *  maximum and average number of iterations and CPU time to solve
  *	each QP.
  *
  * \return SUCCESSFUL_RETURN \n

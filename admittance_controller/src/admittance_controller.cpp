@@ -47,7 +47,7 @@ controller_interface::return_type AdmittanceController::init(
 
   try
   {
-    // definition of the parameters that need to be queried from the 
+    // definition of the parameters that need to be queried from the
     // controller configuration file with default values
     auto_declare<std::vector<std::string>>("joints", std::vector<std::string>());
     auto_declare<std::vector<double>>("stiffness", std::vector<double>());
@@ -136,8 +136,8 @@ AdmittanceController::command_interface_configuration() const
   }
   return conf;
 }
-// Admittance control requires both velocity and position states, as well as 
-// interaction force sesning. For this reason there can be directly defined here 
+// Admittance control requires both velocity and position states, as well as
+// interaction force sesning. For this reason there can be directly defined here
 // without the need of getting as parameters.
 // The state interfaces are then deployed to all targeted joints.
 controller_interface::InterfaceConfiguration
@@ -156,7 +156,7 @@ AdmittanceController::state_interface_configuration() const
   {
       conf.names.push_back(sensor_name);
   }
-  
+
   return conf;
 }
 
@@ -210,7 +210,7 @@ CallbackReturn AdmittanceController::on_deactivate(
   {
       command_interfaces_[index].set_value(0.0);
   }
-  
+
   external_torque_sensor_->release_interfaces();
 
   return CallbackReturn::SUCCESS;
@@ -239,16 +239,16 @@ controller_interface::return_type AdmittanceController::update()
   //Admittance control loop
   for (auto index = 0ul; index < joint_names_.size(); ++index)
   {
-    // the stats are given in the same order as defines in state_interface_configuration  
- 
+    // the stats are given in the same order as defines in state_interface_configuration
+
     double q = state_interfaces_[2*index].get_value();
     double qv = state_interfaces_[2*index+1].get_value();
     double qd = (*proxy)->points[0].positions[index];
-    
+
     double qdv = 0;
     if((*proxy)->points[0].velocities.size() == joint_names_.size())
       qdv = (*proxy)->points[0].velocities[index];
-    
+
     double qda = 0;
     if((*proxy)->points[0].accelerations.size() == joint_names_.size())
       qda = (*proxy)->points[0].accelerations[index];
@@ -256,7 +256,7 @@ controller_interface::return_type AdmittanceController::update()
     double u = qda + 1/mass_[index]*(stiffness_[index]*(qd-q) + damping_[index]*(qdv-qv) + external_torques[index]);
     // TODO (mcbed): simple or double integration for position or velocity interface
     command_interfaces_[index].set_value(internal_position_[index]);
-      
+
   }
 
   return controller_interface::return_type::OK;

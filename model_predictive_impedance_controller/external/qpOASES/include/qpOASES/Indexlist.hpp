@@ -43,7 +43,7 @@
 BEGIN_NAMESPACE_QPOASES
 
 
-/** 
+/**
  *	\brief Stores and manages index lists.
  *
  *	This class manages index lists of active/inactive bounds/constraints.

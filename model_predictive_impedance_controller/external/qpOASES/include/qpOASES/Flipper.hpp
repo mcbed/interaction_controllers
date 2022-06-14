@@ -44,7 +44,7 @@
 BEGIN_NAMESPACE_QPOASES
 
 
-/** 
+/**
  *	\brief Auxiliary class for storing a copy of the current matrix factorisations.
  *
  *	This auxiliary class stores a copy of the current matrix factorisations. It
@@ -117,7 +117,7 @@ class Flipper
 		/** Frees all allocated memory.
 		 *  \return SUCCESSFUL_RETURN */
 		returnValue clear( );
-		
+
 		/** Copies all members from given rhs object.
 		 *  \return SUCCESSFUL_RETURN */
 		returnValue copy(	const Flipper& rhs	/**< Rhs object. */

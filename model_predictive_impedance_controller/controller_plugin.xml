@@ -1,6 +1,6 @@
 <library path="mpi_controller">
-  <class  name="mpi_controller/MPIController" 
-          type="mpi_controller::MPIController" 
+  <class  name="mpi_controller/MPIController"
+          type="mpi_controller::MPIController"
           base_class_type="controller_interface::ControllerInterface">
   <description>
     The model predictive impedance controller commands a group of joints through the acceleration interface.

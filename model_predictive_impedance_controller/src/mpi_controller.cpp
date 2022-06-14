@@ -97,7 +97,7 @@ CallbackReturn MPIController::on_configure(
   stiffnessMat_ = Eigen::MatrixXd::Identity(joint_names_.size(),joint_names_.size());
   massMat_ = Eigen::MatrixXd::Identity(joint_names_.size(),joint_names_.size());
   dampingMat_ = Eigen::MatrixXd::Identity(joint_names_.size(),joint_names_.size());
-  
+
   for(int i=0;i<joint_names_.size();i++){
     stiffnessMat_(i,i) = stiffness[i];
     massMat_(i,i) = mass[i];
@@ -111,7 +111,7 @@ CallbackReturn MPIController::on_configure(
     RCLCPP_ERROR(get_node()->get_logger(), "missing sampling_time parameter");
     return CallbackReturn::FAILURE;
   }
-  
+
   Eigen::MatrixXd K(nu,nx);
   K.block(0,0,nu,nu) = massMat_.block(0,0,nu,nu).inverse()*dampingMat_.block(0,0,nu,nu);
   K.block(0,nu,nu,nu) = massMat_.block(0,0,nu,nu).inverse()*stiffnessMat_.block(0,0,nu,nu);
@@ -257,7 +257,7 @@ controller_interface::return_type MPIController::update(const rclcpp::Time & tim
 {
   // getting the data from the subscriber using the rt pipe
   auto reference = rt_command_ptr_.readFromRT();
-  
+
   // no command received yet
   if (!reference || !(*reference))
   {
@@ -270,12 +270,12 @@ controller_interface::return_type MPIController::update(const rclcpp::Time & tim
     RCLCPP_ERROR_THROTTLE( get_node()->get_logger(), *node_->get_clock(), 1000,"command size does not match number of interfaces");
     return controller_interface::return_type::ERROR;
   }
-  // checkoing if new reference 
+  // checkoing if new reference
   if((*reference)->header.stamp != previous_stamp_){
     reference_index_ = 0;
     previous_stamp_ = (*reference)->header.stamp;
   }
-  // updating reference for prediction 
+  // updating reference for prediction
   for (int i = 0; i < mpic_->getHorizon(); ++i) {
     if((reference_index_+i)<(*reference)->points.size()){
       for (int j =0; j < joint_names_.size(); j++) {

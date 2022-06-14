@@ -43,7 +43,7 @@
 BEGIN_NAMESPACE_QPOASES
 
 
-/** 
+/**
  *	\brief Manages working sets of constraints.
  *
  *	This class manages working sets of constraints by storing
@@ -210,7 +210,7 @@ class Constraints : public SubjectTo
 		/** Frees all allocated memory.
 		 *  \return SUCCESSFUL_RETURN */
 		returnValue clear( );
-		
+
 		/** Copies all members from given rhs object.
 		 *  \return SUCCESSFUL_RETURN */
 		returnValue copy(	const Constraints& rhs	/**< Rhs object. */

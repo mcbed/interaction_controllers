@@ -246,7 +246,7 @@ inline returnValue QProblemB::setH( SymmetricMatrix* H_new )
 
 	H = H_new;
 	freeHessian = BT_FALSE;
-	
+
 	return SUCCESSFUL_RETURN;
 }
 

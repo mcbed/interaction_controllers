@@ -133,7 +133,7 @@ inline returnValue QProblem::setA( Matrix *A_new )
 	{
 		Ax_u[j] = ubA[j] - Ax[j];
 		Ax_l[j] = Ax[j] - lbA[j];
-		// (ckirches) disable constraints with empty rows	
+		// (ckirches) disable constraints with empty rows
 		if ( isZero( tempC[j] ) == BT_TRUE )
 			constraints.setType ( j, ST_DISABLED );
 	}
@@ -193,7 +193,7 @@ inline returnValue QProblem::setLBA( const real_t* const lbA_new )
 		return THROWERROR( RET_QPOBJECT_NOT_SETUP );
 
 	if ( lbA_new != 0 )
-	{	
+	{
 		memcpy( lbA,lbA_new,nC*sizeof(real_t) );
 	}
 	else
