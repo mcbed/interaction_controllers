@@ -21,10 +21,18 @@ find_package(realtime_tools REQUIRED)
 find_package(trajectory_msgs REQUIRED)
 find_package(Eigen3 REQUIRED)
 
-set(EXT_LIBS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/qpOASES")
-include_directories("${EXT_LIBS_DIR}/include")
-
 include_directories(${EIGEN3_INCLUDE_DIR})
+
+set(EXT_LIBS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/qpOASES")
+include(ExternalProject)
+ExternalProject_Add(qpOASES
+    GIT_REPOSITORY https://github.com/coin-or/qpOASES.git
+    GIT_TAG        stable/3.2
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXT_LIBS_DIR} -DCMAKE_CXX_FLAGS="-fPIC"
+)
+
+include_directories(${EXT_LIBS_DIR}/include)
+link_directories(${EXT_LIBS_DIR}/lib)
 
 add_library(mpi_controller
   SHARED
@@ -32,11 +40,9 @@ add_library(mpi_controller
   src/mpic.cpp
 )
 
-# qpOASES
-add_library(libqpOASES STATIC IMPORTED qpOASES.hpp)
-set_property(TARGET libqpOASES PROPERTY IMPORTED_LOCATION "${EXT_LIBS_DIR}/libqpOASES.so")
+add_dependencies(mpi_controller qpOASES)
 
-target_include_directories(mpi_controller PRIVATE include ${EXT_LIBS_DIR}/include)
+target_include_directories(mpi_controller PUBLIC include ${EXT_LIBS_DIR}/include)
 
 ament_target_dependencies(mpi_controller
   builtin_interfaces
@@ -50,7 +56,7 @@ ament_target_dependencies(mpi_controller
   Eigen3
 )
 
-target_link_libraries(mpi_controller libqpOASES)
+target_link_libraries(mpi_controller libqpOASES.a)
 
 # Causes the visibility macros to use dllexport rather than dllimport,
 # which is appropriate when building the dll but not consuming it.
@@ -96,32 +102,32 @@ if(BUILD_TESTING)
     ros2_control_test_assets
   )
 
-  # ament_add_gmock(
-  #   test_mpi_controller
-  #   test/test_mpi_controller.cpp
-  # )
+  ament_add_gmock(
+    test_mpi_controller
+    test/test_mpi_controller.cpp
+  )
 
-  # target_include_directories(
-  #   test_mpi_controller
-  #   PRIVATE 
-  #   include
-  #   ${EXT_LIBS_DIR}/include
-  # )
+  target_include_directories(
+    test_mpi_controller
+    PRIVATE 
+    include
+  )
 
-  # target_link_libraries(
-  #   test_mpi_controller
-  #   mpi_controller
-  #   libqpOASES
-  # )
-  # ament_target_dependencies(
-  #   test_mpi_controller
-  #   controller_interface
-  #   hardware_interface
-  #   rclcpp
-  #   rclcpp_lifecycle
-  #   realtime_tools
-  #   std_msgs
-  # )
+  target_link_libraries(
+    test_mpi_controller
+    mpi_controller
+    # ${EXT_LIBS_DIR}/libqpOASES.so
+  )
+
+  ament_target_dependencies(
+    test_mpi_controller
+    controller_interface
+    hardware_interface
+    rclcpp
+    rclcpp_lifecycle
+    realtime_tools
+    std_msgs
+  )
 endif()
 
 ament_export_dependencies(
