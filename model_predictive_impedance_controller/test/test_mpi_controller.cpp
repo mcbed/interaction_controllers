@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "hardware_interface/loaned_command_interface.hpp"
+#include "hardware_interface/loaned_state_interface.hpp"
 #include "hardware_interface/types/hardware_interface_return_values.hpp"
 #include "lifecycle_msgs/msg/state.hpp"
 #include "rclcpp/utilities.hpp"
@@ -29,6 +30,7 @@
 
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 using hardware_interface::LoanedCommandInterface;
+using hardware_interface::LoanedStateInterface;
 using CmdType = trajectory_msgs::msg::JointTrajectory;
 
 namespace
@@ -61,7 +63,16 @@ void MPIControllerTest::SetUpController()
   std::vector<LoanedCommandInterface> command_ifs;
   command_ifs.emplace_back(joint1_ci_);
   command_ifs.emplace_back(joint2_ci_);
-  controller_->assign_interfaces(std::move(command_ifs), {});
+
+  std::vector<LoanedStateInterface> state_ifs;
+  state_ifs.emplace_back(joint1_sip_);
+  state_ifs.emplace_back(joint1_siv_);
+  state_ifs.emplace_back(joint1_sie_);
+  state_ifs.emplace_back(joint2_sip_);
+  state_ifs.emplace_back(joint2_siv_);
+  state_ifs.emplace_back(joint2_sie_);
+
+  controller_->assign_interfaces(std::move(command_ifs), std::move(state_ifs));
 }
 
 TEST_F(MPIControllerTest, JointsParameterNotSet)
@@ -69,7 +80,7 @@ TEST_F(MPIControllerTest, JointsParameterNotSet)
   SetUpController();
 
   // configure failed, 'joints' parameter not set
-  ASSERT_EQ(controller_->on_configure(rclcpp_lifecycle::State()), CallbackReturn::ERROR);
+  ASSERT_EQ(controller_->on_configure(rclcpp_lifecycle::State()), CallbackReturn::FAILURE);
 }
 
 TEST_F(MPIControllerTest, JointsParameterIsEmpty)
@@ -78,24 +89,114 @@ TEST_F(MPIControllerTest, JointsParameterIsEmpty)
   controller_->get_node()->set_parameter({"joints", std::vector<std::string>()});
 
   // configure failed, 'joints' is empty
-  ASSERT_EQ(controller_->on_configure(rclcpp_lifecycle::State()), CallbackReturn::ERROR);
+  ASSERT_EQ(controller_->on_configure(rclcpp_lifecycle::State()), CallbackReturn::FAILURE);
 }
 
 TEST_F(MPIControllerTest, ConfigureAndActivateParamsSuccess)
 {
   SetUpController();
   controller_->get_node()->set_parameter({"joints", joint_names_});
+  controller_->get_node()->set_parameter({"sampling_time", 0.005});
 
   // configure successful
   ASSERT_EQ(controller_->on_configure(rclcpp_lifecycle::State()), CallbackReturn::SUCCESS);
   ASSERT_EQ(controller_->on_activate(rclcpp_lifecycle::State()), CallbackReturn::SUCCESS);
 }
 
-TEST_F(MPIControllerTest, ActivateWithWrongGpiosNamesFails)
+TEST_F(MPIControllerTest, ActivateWithWrongJointNamesFails)
 {
   SetUpController();
   controller_->get_node()->set_parameter({"joints", std::vector<std::string>{"joint1", "joint4"}});
-  // // activate failed, 'gpio4' is not a valid gpio name for the hardware
+  controller_->get_node()->set_parameter({"sampling_time", 0.005});
+  // // activate failed, 'joint4' is not a valid joint name for the hardware
   ASSERT_EQ(controller_->on_configure(rclcpp_lifecycle::State()), CallbackReturn::SUCCESS);
   ASSERT_EQ(controller_->on_activate(rclcpp_lifecycle::State()), CallbackReturn::ERROR);
+}
+
+TEST_F(MPIControllerTest, CommandSuccessTest)
+{
+  SetUpController();
+  controller_->get_node()->set_parameter({"joints", joint_names_});
+  controller_->get_node()->set_parameter({"sampling_time", 0.005});
+
+  ASSERT_EQ(controller_->on_configure(rclcpp_lifecycle::State()), CallbackReturn::SUCCESS);
+
+  // update successful though no command has been send yet
+  ASSERT_EQ(
+    controller_->update(rclcpp::Time(0), rclcpp::Duration::from_seconds(0.005)),
+    controller_interface::return_type::OK);
+
+  // check joint commands and states are still the default ones
+  ASSERT_EQ(joint1_ci_.get_value(), 0.0);
+  ASSERT_EQ(joint2_ci_.get_value(), 0.0);
+  ASSERT_EQ(joint1_sip_.get_value(), 0.0);
+  ASSERT_EQ(joint2_sip_.get_value(), 0.0);
+  ASSERT_EQ(joint1_siv_.get_value(), 0.0);
+  ASSERT_EQ(joint2_siv_.get_value(), 0.0);
+  ASSERT_EQ(joint1_sie_.get_value(), 0.0);
+  ASSERT_EQ(joint2_sie_.get_value(), 0.0);
+
+  // send command
+  auto command_ptr = std::make_shared<CmdType>();
+  command_ptr->joint_names = joint_names_;
+  command_ptr->points.resize(1);
+  command_ptr->points[0].positions = {1,2};
+  command_ptr->points[0].velocities = {0,0};
+  command_ptr->points[0].accelerations = {0,0};
+  
+  controller_->rt_command_ptr_.writeFromNonRT(command_ptr);
+
+  // update successful, command received
+  ASSERT_EQ(
+    controller_->update(rclcpp::Time(0), rclcpp::Duration::from_seconds(0.005)),
+    controller_interface::return_type::OK);
+
+  // check joint commands have been modified
+  ASSERT_EQ(joint1_ci_.get_value(), 50.0);
+  ASSERT_EQ(joint2_ci_.get_value(), 100.0);
+}
+
+TEST_F(MPIControllerTest, WrongCommandCheckTest)
+{
+  SetUpController();
+  controller_->get_node()->set_parameter({"joints", joint_names_});
+  controller_->get_node()->set_parameter({"sampling_time", 0.005});
+
+  ASSERT_EQ(controller_->on_configure(rclcpp_lifecycle::State()), CallbackReturn::SUCCESS);
+
+  // send command with wrong number of joints
+  auto command_ptr = std::make_shared<CmdType>();
+  command_ptr->joint_names = {"joint1"};
+  command_ptr->points.resize(1);
+  command_ptr->points[0].positions = {1};
+  command_ptr->points[0].velocities = {0};
+  command_ptr->points[0].accelerations = {0};
+  controller_->rt_command_ptr_.writeFromNonRT(command_ptr);
+
+  // update failed, command size does not match number of gpios
+  ASSERT_EQ(
+    controller_->update(rclcpp::Time(0), rclcpp::Duration::from_seconds(0.005)),
+    controller_interface::return_type::ERROR);
+
+  // check joint commands are still the default ones
+  ASSERT_EQ(joint1_ci_.get_value(), 0.0);
+  ASSERT_EQ(joint2_ci_.get_value(), 0.0);
+}
+
+TEST_F(MPIControllerTest, NoCommandCheckTest)
+{
+  SetUpController();
+  controller_->get_node()->set_parameter({"joints", joint_names_});
+  controller_->get_node()->set_parameter({"sampling_time", 0.005});
+
+  ASSERT_EQ(controller_->on_configure(rclcpp_lifecycle::State()), CallbackReturn::SUCCESS);
+
+  // update successful, no command received yet
+  ASSERT_EQ(
+    controller_->update(rclcpp::Time(0), rclcpp::Duration::from_seconds(0.005)),
+    controller_interface::return_type::OK);
+
+  // check joint commands are still the default ones
+  ASSERT_EQ(joint1_ci_.get_value(), 0.0);
+  ASSERT_EQ(joint2_ci_.get_value(), 0.0);
 }

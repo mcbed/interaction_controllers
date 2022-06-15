@@ -26,6 +26,7 @@
 #include "mpi_controller/mpi_controller.hpp"
 
 using hardware_interface::CommandInterface;
+using hardware_interface::StateInterface;
 
 // subclassing and friending so we can access member variables
 class FriendMPIController : public mpi_controller::MPIController
@@ -53,9 +54,18 @@ protected:
   // dummy joint state values used for tests
   const std::vector<std::string> joint_names_ = {"joint1", "joint2"};
   std::vector<double> joint_commands_ = {0.0, 0.0};
+  std::vector<double> joint_states_position_ = {0.0, 0.0};
+  std::vector<double> joint_states_velocity_ = {0.0, 0.0};
+  std::vector<double> joint_states_exteffort_ = {0.0, 0.0};
 
-  CommandInterface joint1_ci_{joint_names_[0], "acceleration", &joint_commands_[0]};
-  CommandInterface joint2_ci_{joint_names_[1], "acceleration", &joint_commands_[1]};
+  CommandInterface joint1_ci_{joint_names_[0], hardware_interface::HW_IF_ACCELERATION, &joint_commands_[0]};
+  CommandInterface joint2_ci_{joint_names_[1], hardware_interface::HW_IF_ACCELERATION, &joint_commands_[1]};
+  StateInterface joint1_sip_{joint_names_[0], hardware_interface::HW_IF_POSITION, &joint_states_position_[0]};
+  StateInterface joint2_sip_{joint_names_[1], hardware_interface::HW_IF_POSITION, &joint_states_position_[1]};
+  StateInterface joint1_siv_{joint_names_[0], hardware_interface::HW_IF_VELOCITY, &joint_states_velocity_[0]};
+  StateInterface joint2_siv_{joint_names_[1], hardware_interface::HW_IF_VELOCITY, &joint_states_velocity_[1]};
+  StateInterface joint1_sie_{joint_names_[0], "external_effort", &joint_states_exteffort_[0]};
+  StateInterface joint2_sie_{joint_names_[1], "external_effort", &joint_states_exteffort_[1]};
 };
 
 #endif  // TEST_MPI_CONTROLLER_HPP_
