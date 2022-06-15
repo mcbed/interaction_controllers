@@ -77,7 +77,7 @@ CallbackReturn MPIController::on_configure(
   if(stiffness.empty())
     stiffness.resize(joint_names_.size(),50.0);
   if(mass.empty())
-    mass.resize(joint_names_.size(),0.0);
+    mass.resize(joint_names_.size(),1.0);
   if(damping_ratio < 0)
     damping_ratio = 0;
 
@@ -106,7 +106,7 @@ CallbackReturn MPIController::on_configure(
   int nu = joint_names_.size();
   int nx = 3*joint_names_.size();
   int N = node_->get_parameter("control_horizon").as_int();
-  double Ts = node_->get_parameter("sampling_time").as_int();
+  double Ts = node_->get_parameter("sampling_time").as_double();
   if(Ts == 0){
     RCLCPP_ERROR(get_node()->get_logger(), "missing sampling_time parameter");
     return CallbackReturn::FAILURE;
@@ -125,25 +125,25 @@ CallbackReturn MPIController::on_configure(
 
   Eigen::MatrixXd selectX(nx,1);
   Eigen::MatrixXd selectu(nu,1);
-  selectX <<  1, 1, 0, 0, 0, 0,// velocity
-              0, 0, 0, 0, 0, 0,// position
-              0, 0, 0, 0, 0, 0;// external torque => no sens for != 0
-  selectu << 0, 0, 0, 0, 0, 0; // acceleration
+  // selectX <<  1, 1, 0, 0, 0, 0,// velocity
+  //             0, 0, 0, 0, 0, 0,// position
+  //             0, 0, 0, 0, 0, 0;// external torque => no sens for != 0
+  // selectu << 0, 0, 0, 0, 0, 0; // acceleration
 
   Eigen::MatrixXd Xmax(nx,1);
   Eigen::MatrixXd Xmin(nx,1);
   Eigen::MatrixXd umax(nu,1);
   Eigen::MatrixXd umin(nu,1);
-  Xmax << 0.02, 0.02, 0, 0, 0, 0, // velocity
-          2.0, -0.55, 0, 0, 0, 0,// position
-          0.0, 0.0, 0, 0, 0, 0; // external torque => no sens for != 0
+  // Xmax << 0.02, 0.02, 0, 0, 0, 0, // velocity
+  //         2.0, -0.55, 0, 0, 0, 0,// position
+  //         0.0, 0.0, 0, 0, 0, 0; // external torque => no sens for != 0
 
-  Xmin << -0.02, -0.02, 0, 0, 0, 0,// velocity
-          0.0, -0.8, 0, 0, 0, 0,// position
-          0.0, 0.0, 0, 0, 0, 0; // external torque => no sens for != 0
+  // Xmin << -0.02, -0.02, 0, 0, 0, 0,// velocity
+  //         0.0, -0.8, 0, 0, 0, 0,// position
+  //         0.0, 0.0, 0, 0, 0, 0; // external torque => no sens for != 0
 
-  umax << 1, 0.8, 0, 0, 0, 0; // max acceleration
-  umin << -0.45, -0.4, 0, 0, 0, 0; // min acceleration
+  // umax << 1, 0.8, 0, 0, 0, 0; // max acceleration
+  // umin << -0.45, -0.4, 0, 0, 0, 0; // min acceleration
 
   mpic_ = new MPIC(nx,nu,N);
   mpic_->setTimeStep(Ts);
@@ -231,7 +231,7 @@ CallbackReturn MPIController::on_activate(
   std::vector<std::reference_wrapper<LoanedCommandInterface>> ordered_interfaces;
   if (
     !get_ordered_interfaces(
-      command_interfaces_, joint_names_, "acceleration", ordered_interfaces) ||
+      command_interfaces_, joint_names_, hardware_interface::HW_IF_ACCELERATION, ordered_interfaces) ||
     command_interfaces_.size() != ordered_interfaces.size())
   {
     RCLCPP_ERROR(
