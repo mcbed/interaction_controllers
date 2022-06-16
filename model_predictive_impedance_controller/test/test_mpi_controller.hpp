@@ -33,7 +33,7 @@ class FriendMPIController : public mpi_controller::MPIController
 {
   FRIEND_TEST(MPIControllerTest, CommandSuccessTest);
   FRIEND_TEST(MPIControllerTest, WrongCommandCheckTest);
-  FRIEND_TEST(MPIControllerTest, CommandCallbackTest);
+  FRIEND_TEST(MPIControllerTest, CommandSuccessTestWithConstraints);
 };
 
 class MPIControllerTest : public ::testing::Test

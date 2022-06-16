@@ -62,17 +62,24 @@ CallbackReturn MPIController::on_configure(
   const rclcpp_lifecycle::State & /*previous_state*/)
 {
   // getting the names of the joints to be controlled
-  joint_names_ = node_->get_parameter("joints").as_string_array();
+  joint_names_ = get_node()->get_parameter("joints").as_string_array();
 
   if (joint_names_.empty())
   {
     RCLCPP_ERROR(get_node()->get_logger(), "'joints' parameter was empty");
     return CallbackReturn::FAILURE;
   }
+
+  for(auto i = 0ul; i < joint_names_.size(); i++){
+    auto_declare<std::vector<double>>("constraints." + joint_names_[i] + ".position", std::vector<double>());
+    auto_declare<std::vector<double>>("constraints." + joint_names_[i] + ".velocity", std::vector<double>());
+    auto_declare<std::vector<double>>("constraints." + joint_names_[i] + ".acceleration", std::vector<double>());
+  }
+
   // getting the impedance parameters
-  std::vector<double> stiffness = node_->get_parameter("stiffness").as_double_array();
-  std::vector<double> mass = node_->get_parameter("mass").as_double_array();
-  double damping_ratio = node_->get_parameter("damping_ratio").as_double();
+  std::vector<double> stiffness = get_node()->get_parameter("stiffness").as_double_array();
+  std::vector<double> mass = get_node()->get_parameter("mass").as_double_array();
+  double damping_ratio = get_node()->get_parameter("damping_ratio").as_double();
 
   if(stiffness.empty())
     stiffness.resize(joint_names_.size(),50.0);
@@ -105,8 +112,8 @@ CallbackReturn MPIController::on_configure(
   }
   int nu = joint_names_.size();
   int nx = 3*joint_names_.size();
-  int N = node_->get_parameter("control_horizon").as_int();
-  double Ts = node_->get_parameter("sampling_time").as_double();
+  int N = get_node()->get_parameter("control_horizon").as_int();
+  double Ts = get_node()->get_parameter("sampling_time").as_double();
   if(Ts == 0){
     RCLCPP_ERROR(get_node()->get_logger(), "missing sampling_time parameter");
     return CallbackReturn::FAILURE;
@@ -123,27 +130,42 @@ CallbackReturn MPIController::on_configure(
   Eigen::MatrixXd B= Eigen::MatrixXd::Zero(nx,nu);
   B.block(0,0,nu,nu) = Ts*Eigen::MatrixXd::Identity(nu,nu);
 
-  Eigen::MatrixXd selectX(nx,1);
-  Eigen::MatrixXd selectu(nu,1);
-  // selectX <<  1, 1, 0, 0, 0, 0,// velocity
-  //             0, 0, 0, 0, 0, 0,// position
-  //             0, 0, 0, 0, 0, 0;// external torque => no sens for != 0
-  // selectu << 0, 0, 0, 0, 0, 0; // acceleration
+  Eigen::MatrixXd selectX = Eigen::MatrixXd::Zero(nx,1);
+  Eigen::MatrixXd selectu = Eigen::MatrixXd::Zero(nu,1);
 
-  Eigen::MatrixXd Xmax(nx,1);
-  Eigen::MatrixXd Xmin(nx,1);
-  Eigen::MatrixXd umax(nu,1);
-  Eigen::MatrixXd umin(nu,1);
-  // Xmax << 0.02, 0.02, 0, 0, 0, 0, // velocity
-  //         2.0, -0.55, 0, 0, 0, 0,// position
-  //         0.0, 0.0, 0, 0, 0, 0; // external torque => no sens for != 0
+  Eigen::MatrixXd Xmax = Eigen::MatrixXd::Zero(nx,1);
+  Eigen::MatrixXd Xmin = Eigen::MatrixXd::Zero(nx,1);
+  Eigen::MatrixXd umax = Eigen::MatrixXd::Zero(nu,1);
+  Eigen::MatrixXd umin = Eigen::MatrixXd::Zero(nu,1);
 
-  // Xmin << -0.02, -0.02, 0, 0, 0, 0,// velocity
-  //         0.0, -0.8, 0, 0, 0, 0,// position
-  //         0.0, 0.0, 0, 0, 0, 0; // external torque => no sens for != 0
+  // selectX = select [velocity, position, external torque => no sens for != 0] (0 or 1)
+  // selectu = select acceleration (0 or 1)
+  // Xmax = [velocity, position, external torque => no sens for != 0]
+  // Xmin = [velocity, position, external torque => no sens for != 0]
+  // umax = max acceleration
+  // umin = min acceleration
 
-  // umax << 1, 0.8, 0, 0, 0, 0; // max acceleration
-  // umin << -0.45, -0.4, 0, 0, 0, 0; // min acceleration
+  for(auto i = 0ul; i < joint_names_.size(); i++){
+    std::vector<double> plimits = get_node()->get_parameter("constraints." + joint_names_[i] + ".position").as_double_array();
+    std::vector<double> vlimits = get_node()->get_parameter("constraints." + joint_names_[i] + ".velocity").as_double_array();
+    std::vector<double> alimits = get_node()->get_parameter("constraints." + joint_names_[i] + ".acceleration").as_double_array();
+
+    if(!vlimits.empty()){
+      selectX(i,0) = 1;
+      Xmax(i,0) = vlimits[1];
+      Xmin(i,0) = vlimits[0];
+    } 
+    if(!plimits.empty()){
+      selectX(nu+i,0) = 1;
+      Xmax(nu+i,0) = plimits[1];
+      Xmin(nu+i,0) = plimits[0];
+    }
+    if(!alimits.empty()){
+      selectu(i,0) = 1;
+      umax(i,0) = alimits[1];
+      umin(i,0) = alimits[0];
+    }
+  }
 
   mpic_ = new MPIC(nx,nu,N);
   mpic_->setTimeStep(Ts);
@@ -235,7 +257,7 @@ CallbackReturn MPIController::on_activate(
     command_interfaces_.size() != ordered_interfaces.size())
   {
     RCLCPP_ERROR(
-      node_->get_logger(), "Expected %zu position command interfaces, got %zu", joint_names_.size(),
+      get_node()->get_logger(), "Expected %zu position command interfaces, got %zu", joint_names_.size(),
       ordered_interfaces.size());
     return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::ERROR;
   }
@@ -267,7 +289,7 @@ controller_interface::return_type MPIController::update(const rclcpp::Time & tim
   //checking reference data validity
   if ((*reference)->joint_names.size() != joint_names_.size() ||
       (*reference)->points[0].positions.size() != joint_names_.size())  {
-    RCLCPP_ERROR_THROTTLE( get_node()->get_logger(), *node_->get_clock(), 1000,"command size does not match number of interfaces");
+    RCLCPP_ERROR_THROTTLE( get_node()->get_logger(), *get_node()->get_clock(), 1000,"command size does not match number of interfaces");
     return controller_interface::return_type::ERROR;
   }
   // checkoing if new reference

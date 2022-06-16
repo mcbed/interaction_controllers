@@ -200,3 +200,47 @@ TEST_F(MPIControllerTest, NoCommandCheckTest)
   ASSERT_EQ(joint1_ci_.get_value(), 0.0);
   ASSERT_EQ(joint2_ci_.get_value(), 0.0);
 }
+
+TEST_F(MPIControllerTest, CommandSuccessTestWithConstraints)
+{
+  SetUpController();
+  controller_->get_node()->set_parameter({"joints", joint_names_});
+  controller_->get_node()->set_parameter({"sampling_time", 0.005});
+  controller_->get_node()->set_parameter({"constraints." + joint_names_[0] + ".acceleration", std::vector<double>{-10, 10}});
+
+  ASSERT_EQ(controller_->on_configure(rclcpp_lifecycle::State()), CallbackReturn::SUCCESS);
+
+  // update successful though no command has been send yet
+  ASSERT_EQ(
+    controller_->update(rclcpp::Time(0), rclcpp::Duration::from_seconds(0.005)),
+    controller_interface::return_type::OK);
+
+  // check joint commands and states are still the default ones
+  ASSERT_EQ(joint1_ci_.get_value(), 0.0);
+  ASSERT_EQ(joint2_ci_.get_value(), 0.0);
+  ASSERT_EQ(joint1_sip_.get_value(), 0.0);
+  ASSERT_EQ(joint2_sip_.get_value(), 0.0);
+  ASSERT_EQ(joint1_siv_.get_value(), 0.0);
+  ASSERT_EQ(joint2_siv_.get_value(), 0.0);
+  ASSERT_EQ(joint1_sie_.get_value(), 0.0);
+  ASSERT_EQ(joint2_sie_.get_value(), 0.0);
+
+  // send command
+  auto command_ptr = std::make_shared<CmdType>();
+  command_ptr->joint_names = joint_names_;
+  command_ptr->points.resize(1);
+  command_ptr->points[0].positions = {1,2};
+  command_ptr->points[0].velocities = {0,0};
+  command_ptr->points[0].accelerations = {0,0};
+  
+  controller_->rt_command_ptr_.writeFromNonRT(command_ptr);
+
+  // update successful, command received
+  ASSERT_EQ(
+    controller_->update(rclcpp::Time(0), rclcpp::Duration::from_seconds(0.005)),
+    controller_interface::return_type::OK);
+
+  // check joint commands have been modified
+  ASSERT_EQ(joint1_ci_.get_value(), 50.0);
+  ASSERT_EQ(joint2_ci_.get_value(), 100.0);
+}
