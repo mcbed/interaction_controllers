@@ -70,11 +70,11 @@ CallbackReturn MPIController::on_configure(
     return CallbackReturn::FAILURE;
   }
 
-  for(auto i = 0ul; i < joint_names_.size(); i++){
-    auto_declare<std::vector<double>>("constraints." + joint_names_[i] + ".position", std::vector<double>());
-    auto_declare<std::vector<double>>("constraints." + joint_names_[i] + ".velocity", std::vector<double>());
-    auto_declare<std::vector<double>>("constraints." + joint_names_[i] + ".acceleration", std::vector<double>());
-  }
+  // for(auto i = 0ul; i < joint_names_.size(); i++){
+  //   auto_declare<std::vector<double>>("constraints." + joint_names_[i] + ".position", std::vector<double>());
+  //   auto_declare<std::vector<double>>("constraints." + joint_names_[i] + ".velocity", std::vector<double>());
+  //   auto_declare<std::vector<double>>("constraints." + joint_names_[i] + ".acceleration", std::vector<double>());
+  // }
 
   // getting the impedance parameters
   std::vector<double> stiffness = get_node()->get_parameter("stiffness").as_double_array();
@@ -86,7 +86,7 @@ CallbackReturn MPIController::on_configure(
   if(mass.empty())
     mass.resize(joint_names_.size(),1.0);
   if(damping_ratio < 0)
-    damping_ratio = 0;
+    damping_ratio = 0.7;
 
   if(stiffness.size() != mass.size()){
     RCLCPP_ERROR(get_node()->get_logger(), "incoherent size of impedance parameters");
@@ -145,27 +145,26 @@ CallbackReturn MPIController::on_configure(
   // umax = max acceleration
   // umin = min acceleration
 
-  for(auto i = 0ul; i < joint_names_.size(); i++){
-    std::vector<double> plimits = get_node()->get_parameter("constraints." + joint_names_[i] + ".position").as_double_array();
-    std::vector<double> vlimits = get_node()->get_parameter("constraints." + joint_names_[i] + ".velocity").as_double_array();
-    std::vector<double> alimits = get_node()->get_parameter("constraints." + joint_names_[i] + ".acceleration").as_double_array();
+  // for(auto i = 0ul; i < joint_names_.size(); i++){
+  //   std::vector<double> plimits = get_node()->get_parameter("constraints." + joint_names_[i] + ".position").as_double_array();
+  //   std::vector<double> vlimits = get_node()->get_parameter("constraints." + joint_names_[i] + ".velocity").as_double_array();
+  //   std::vector<double> alimits = get_node()->get_parameter("constraints." + joint_names_[i] + ".acceleration").as_double_array();
 
-    if(!vlimits.empty()){
-      selectX(i,0) = 1;
-      Xmax(i,0) = vlimits[1];
-      Xmin(i,0) = vlimits[0];
-    } 
-    if(!plimits.empty()){
-      selectX(nu+i,0) = 1;
-      Xmax(nu+i,0) = plimits[1];
-      Xmin(nu+i,0) = plimits[0];
-    }
-    if(!alimits.empty()){
-      selectu(i,0) = 1;
-      umax(i,0) = alimits[1];
-      umin(i,0) = alimits[0];
-    }
-  }
+  //   if(!vlimits.empty()){
+  //     Xmax(i,0) = vlimits[1];
+  //     Xmin(i,0) = vlimits[0];
+  //   } 
+  //   if(!plimits.empty()){
+  //     selectX(nu+i,0) = 1;
+  //     Xmax(nu+i,0) = plimits[1];
+  //     Xmin(nu+i,0) = plimits[0];
+  //   }
+  //   if(!alimits.empty()){
+  //     selectu(i,0) = 1;
+  //     umax(i,0) = alimits[1];
+  //     umin(i,0) = alimits[0];
+  //   }
+  // }
 
   mpic_ = new MPIC(nx,nu,N);
   mpic_->setTimeStep(Ts);
@@ -343,8 +342,8 @@ controller_interface::return_type MPIController::update(const rclcpp::Time & tim
 
   if(mpic_->_QPfail)
     RCLCPP_WARN(get_node()->get_logger(), "MPIC: failed solving QP");
-
-  uOpt_ = mpic_->getuOpt();
+  else 
+    uOpt_ = mpic_->getuOpt();
 
   for (auto index = 0ul; index < joint_names_.size(); ++index){
     command_interfaces_[index].set_value(uOpt_(index));
