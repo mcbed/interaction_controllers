@@ -310,7 +310,7 @@ controller_interface::return_type MPIController::update(const rclcpp::Time & tim
       for (int j=0; j < mpic_->getDimU(); j++) {
           rku_tmp_(mpic_->getDimU()*i+j) = 0.0;
           rkX_tmp_(mpic_->getDimX()*i+j) = 0.0;
-          rkX_tmp_(mpic_->getDimX()*i+mpic_->getDimU()+j) = (*reference)->points[(*reference)->points.size()+i].positions[j];
+          rkX_tmp_(mpic_->getDimX()*i+mpic_->getDimU()+j) = (*reference)->points[(*reference)->points.size()-1].positions[j];
           rkX_tmp_(mpic_->getDimX()*i+2*mpic_->getDimU()+j) = 0.0;
       }
     }
@@ -339,7 +339,7 @@ controller_interface::return_type MPIController::update(const rclcpp::Time & tim
     solved_first_ = true;
   }
   else mpic_->updateSolveMPIC(stateX_,rk_);
-
+  
   if(mpic_->_QPfail)
     RCLCPP_WARN(get_node()->get_logger(), "MPIC: failed solving QP");
   else 
