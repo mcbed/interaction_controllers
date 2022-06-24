@@ -289,8 +289,8 @@ void MPIC::updateSolveMPIC(MatrixXd X,MatrixXd rk){
     try{
 //        if(_qpb.hotstart(_g.data(),_lb.data(),_ub.data(),nullptr,_ubA.data(), nWSR )!= SUCCESSFUL_RETURN) throw std::string("hotstart QP not solved");
 //        if(_qpb.hotstart(_g.data(),nullptr,nullptr,nullptr,_ubA.data(), nWSR )!= SUCCESSFUL_RETURN) throw std::string("hotstart QP not solved");
-        if(_qpb.init( _H.data(),_g.data(),_Gp.data(),_lb.data(),_ub.data(),nullptr,_ubA.data(), nWSR ) != SUCCESSFUL_RETURN) throw std::string("QP not solved");
-//        if(_qpb.init( _H.data(),_g.data(),_Gp.data(),nullptr,nullptr,nullptr,_ubA.data(), nWSR ) != SUCCESSFUL_RETURN) throw std::string("QP not solved");
+        // if(_qpb.init( _H.data(),_g.data(),_Gp.data(),_lb.data(),_ub.data(),nullptr,_ubA.data(), nWSR ) != SUCCESSFUL_RETURN) throw std::string("QP not solved");
+       if(_qpb.init( _H.data(),_g.data(),_Gp.data(),nullptr,nullptr,nullptr,_ubA.data(), nWSR ) != SUCCESSFUL_RETURN) throw std::string("QP not solved");
 
     }
     catch(std::string e) {
